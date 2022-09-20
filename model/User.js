@@ -1,0 +1,42 @@
+const mongoose = require('mongoose')
+const bcrypt = require('bcrypt')
+const jwt = require('jsonwebtoken')
+
+const userSchema = new mongoose.Schema({
+   name:{
+    type: String,
+    required: [true,'please provide a name'],
+    minlegth:2,
+    maxlength: 50
+   } ,
+   email:{
+    type: String,
+    required: [true,'please provide an email'],
+    
+   },
+   password:{
+    type: String,
+    required: [true,'please provide a passsword'],
+    minlegth: 6
+   },
+   isAdmin:{
+    type: Boolean,
+    required:true,
+    default: false
+   }
+
+},{timestamps: true})
+
+
+userSchema.pre('save', async function(){
+    const salt = await bcrypt.genSalt(10)
+    this.password = await bcrypt.hash(this.password, salt)
+})
+
+userSchema.methods.comparePassword = async function(userPassword){
+    const isMatch = await bcrypt.compare(userPassword,this.password)
+    return isMatch
+}
+
+
+module.exports = mongoose.model('User', userSchema)
