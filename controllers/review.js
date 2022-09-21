@@ -3,12 +3,13 @@ const { StatusCodes } = require('http-status-codes')
 const Review = require('../model/Review')
 
 const createReview = async(req,res)=>{
+    req.body.user =req.user.userId
     const review = await Review.create(req.body)
     res.status(StatusCodes.OK).json({review})
 }
 const getAllReview = async(req,res)=>{
-    const review = await Review.find({}).populate('user' ,'name')
-    res.status(StatusCode.OK).json({review})
+    const getReview = await Review.find({})
+    res.status(StatusCodes.OK).json({getReview})
 
 }
 const getSingleReview = async(req,res)=>{

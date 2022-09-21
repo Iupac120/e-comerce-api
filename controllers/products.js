@@ -2,19 +2,29 @@
 const{CustomApiError} = require('../error')
 const {StatusCodes} = require('http-status-codes')
 const Product = require('../model/Product')
+const path = require('path')
 const multer = require('multer')
-
+const imgPath = path.join(__dirname,'..','uploads')
 
 const Storage = multer.diskStorage({
-    destination:function(req,file,callback){
-        callback(null,'../uploads/')
-    },
+    destination:imgPath,
     filename: function (req,file,callback){
         callback(null,new Date().toISOString()+ file.originalname)
     }
 })
+
+const fileFilter = (req,file,cb)=>{
+    if(file.mimetype === 'image.jpg' || file.mimetype === 'image/png'){
+        cb(null,true)
+    }else{
+        cb(null,false)
+    }
+}
+
 const upload = multer({
-    storage:Storage
+    storage:Storage,
+    limits:{fileSize:1024*1024*5},
+    fileFilter:fileFilter
 }).single('productImage')
 
 

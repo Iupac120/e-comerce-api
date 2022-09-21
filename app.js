@@ -8,6 +8,7 @@ const userRouter = require('./routes/user')
 const authRouter = require('./routes/auth')
 const productRouter = require('./routes/product')
 const orderRouter = require('./routes/order')
+const reviewRouter = require('./routes/review')
 const errorHandler = require('./middleware/error-handler')
 const cookieParser = require('cookie-parser')
 
@@ -17,6 +18,7 @@ app.use('/api/v1/users', userRouter)
 app.use('/api/v1/auth',authRouter)
 app.use('/api/v1/product',productRouter)
 app.use('/api/v1/order',orderRouter)
+app.use('/api/v1/review',reviewRouter)
 
 app.use(errorHandler)
 const start=async()=>{
