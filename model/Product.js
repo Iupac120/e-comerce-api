@@ -13,6 +13,7 @@ const productSchema = new mongoose.Schema({
         default:0
     },
     image:{
+        data:Buffer,
         type: String,
         default:'../image/example.jpg'
         

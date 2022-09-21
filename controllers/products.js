@@ -2,7 +2,21 @@
 const{CustomApiError} = require('../error')
 const {StatusCodes} = require('http-status-codes')
 const Product = require('../model/Product')
-const User = require('../model/User')
+const multer = require('multer')
+
+
+const Storage = multer.diskStorage({
+    destination:function(req,file,callback){
+        callback(null,'../uploads/')
+    },
+    filename: function (req,file,callback){
+        callback(null,new Date().toISOString()+ file.originalname)
+    }
+})
+const upload = multer({
+    storage:Storage
+}).single('productImage')
+
 
 const getAllProducts = async (req,res)=>{
     const product = await Product.find({user:req.user.userId})
@@ -88,20 +102,34 @@ const countPages = async(req,res)=>{
     const products = await Product.find({...keyword}).limit(pageSize).skip(pageSize*(page-1)).sort({_id:-1})
     res.status(StatusCodes.OK).json({products,page,pages:Math.ceil(count/pageSize)})
 }
+// const uploadProductImage = async(req,res)=>{
+//     if(!req.files){
+//         throw new Error('No file to upload')
+//     }
+//     const productImage = req.files.image;
+//     if(productImage.mimeType.startsWith('image')){
+//         throw new Error('please uploade image')
+//     }
+//     const maxSize = 1024*1024
+//     const imagePath = path.join(__dirname,'../image'+`${productImage.name}`)
+//     await productImage.mv(imagePath)
+//     res.status(StatusCodes.OK).json({image:`../image/${productImage.name}`})
+// }
 const uploadProductImage = async(req,res)=>{
-    if(!req.files){
-        throw new Error('No file to upload')
-    }
-    const productImage = req.files.image;
-    if(productImage.mimeType.startsWith('image')){
-        throw new Error('please uploade image')
-    }
-    const maxSize = 1024*1024
-    const imagePath = path.join(__dirname,'../image'+`${productImage.name}`)
-    await productImage.mv(imagePath)
-    res.status(StatusCodes.OK).json({image:`../image/${productImage.name}`})
+    upload(req,res,(err)=>{
+        if(err){
+            console.log(err)
+        }else{
+            const productImage = new Product({...req.body})
+            productImage.save().then(()=>{
+                res.send('successfully uploaded')
+            }).catch((err)=>{
+                console.log(err)
+            })
+        }
+        
+    })
 }
-
  
 module.exports = {
     getAllProducts,
