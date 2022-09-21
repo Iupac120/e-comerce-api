@@ -1,25 +1,5 @@
 const mongoose = require('mongoose')
 
-const reviewSchema = new mongoose.Schema({
-    name:{
-        type:String,
-        required:[true,'please provide the name'],
-        maxlength:[100,'character cannot be more than 100']
-    },
-    rating:{
-        type:String,
-        required:true
-    },
-    comment:{
-        type:String,
-        required:true
-    },
-    user:{
-        type: mongoose.Schema.Types.ObjectId,
-        required:true,
-        ref:"User"
-    }
-})
 
 const productSchema = new mongoose.Schema({
     name:{
@@ -93,5 +73,13 @@ const productSchema = new mongoose.Schema({
         
     },
 },{timestamps:true, toJSON:{virtuals:true},toObject:{virtuals:true}})
-
+productSchema.virtual('reviews',{
+    ref:'Review',
+    localField:'_id',
+    foreignField:'product',
+    justOne:false
+})
+// productSchema.pre('remove',async function(){
+//     this.model('Review').deleteMany({product:this._id})
+// })
 module.exports = mongoose.model('Product', productSchema)

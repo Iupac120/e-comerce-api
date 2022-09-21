@@ -19,9 +19,9 @@ const createProduct = async(req,res,next)=>{
 
 const getSingleProduct = async(req,res)=>{
     const {user:{userId},params:{id}} = req
-    const product = await Product.findOne({_id:id,user:userId})
+    const product = await Product.findById({_id:id,user:userId})
     .select({name:1,price:1,description:1})
-    .populate('reviews')
+    
     if(!product){
         throw new CustomApiError('No product with id')
     }

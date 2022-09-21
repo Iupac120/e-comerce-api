@@ -1,6 +1,12 @@
 
 const Order = require('../model/Order')
 const {StatusCodes} = require('http-status-codes')
+
+
+const getAllOrder = async(req,res)=>{
+    const order = await Order.find({}).populate('user','name')
+    res.status(StatusCodes.OK).json({order})
+}
 const createOrder = async(req,res)=>{
     const {
         orderItems,
@@ -22,7 +28,7 @@ const createOrder = async(req,res)=>{
 
 const getSingleOrder = async(req,res)=>{
     const {id} = req.params
-    const order = await Order.findById({id}).populate(
+    const order = await Order.findById({_id:id}).populate(
         "user",
         "name email"
     )
@@ -59,14 +65,26 @@ const getUserOrder = async(req,res)=>{
     }
 }
 
-const loginOrder = async(req,res)=>{
-    const order = await Order.find({user:req.user._id}).sort({_id:-1})
-    res.status(StatusCodes.OK).json({order})
+// const loginOrder = async(req,res)=>{
+//     const order = await Order.find({user:req.user._id}).sort({_id:-1})
+//     res.status(StatusCodes.OK).json({order})
+// }
+const updateOrder = async(req,res)=>{
+    const {id} = req.params
+    const updateOrder = await Order.findOneAndUpdate({_id:id},req.body,{
+        new:true, runValidators:true
+    })
+    if(!updateOrder){
+        throw new Error('Order does not exist')
+    }else{
+        res.status(StatusCodes.OK).json({updateOrder})
+    }
 }
 
 module.exports = {
     createOrder,
+    getAllOrder,
     getSingleOrder,
     getUserOrder,
-    loginOrder
+    updateOrder
 }
