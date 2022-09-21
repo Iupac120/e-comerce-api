@@ -10,4 +10,4 @@ router.route('/').get(authenticateUser,loginOrder)
 
 
 
-module.export = router
+module.exports = router
