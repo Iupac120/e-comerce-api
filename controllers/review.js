@@ -4,6 +4,7 @@ const Review = require('../model/Review')
 
 const createReview = async(req,res)=>{
     req.body.user =req.user.userId
+    //req.body.product = req.product
     const review = await Review.create(req.body)
     res.status(StatusCodes.OK).json({review})
 }
@@ -31,6 +32,34 @@ const DeleteReview = async(req,res)=>{
     res.status(StatusCodes.OK).json({msg:'review deleted'})
 }
 
+const getProductReview = async(req,res)=>{
+    const {comment,rating} = req.body
+    const product = await Review.findById(req.params.id)
+    
+        const review = {
+            name:req.user.name,
+            rating: Number(rating),
+            comment:comment,
+            user:req.user._id
+
+
+        }
+    if(product){   
+        product.push(review)
+        product.numReviews = product.reviews.length
+        product.rating = product.reviews.reduce((initVal,curItem)=>{
+            return curItem.rating + initVal
+        },0)/product.reviews.length
+        await product.save()
+        res.status(StatusCodes.ACCEPTED).json({msg:"Review added"})
+    }else{
+        res.status(StatusCodes.NOT_FOUND)
+        throw new Error('Product not found')
+    }
+    console.log('result',product)
+}
+
+
 
 
 module.exports = {
@@ -38,5 +67,6 @@ module.exports = {
     getAllReview,
     getSingleReview,
     updateReview,
-    DeleteReview
+    DeleteReview,
+    getProductReview
 }

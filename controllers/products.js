@@ -29,73 +29,90 @@ const upload = multer({
 
 
 const getAllProducts = async (req,res)=>{
-    const product = await Product.find({user:req.user.userId})
-    .sort({name:1,price:1,description:1})
-    .select({name:1,price:1,description:1}) //jobs associated with the user i.e createdBy
-    res.status(StatusCodes.OK).json(product)
+    const  newQuery = req.query.new;
+    const categoryQuery = req.query.category;
+    
+    try{
+        let product;
+        if(newQuery){
+            product = await Product.find({}).sort({createdAt:"-1"}).limit(5)
+        }else if(categoryQuery){
+            product = await Product.find({
+                category:{
+                    $in:[categoryQuery]
+                }
+            })
+        }else{
+            product = await Product.find({user:req.user.userId})
+            .sort({name:1,price:1,description:1})
+            .select({name:1,price:1,description:1}) //jobs associated with the user i.e createdBy
+        }
+        res.status(StatusCodes.OK).json(product)
+        
+    }catch(err){
+        res.status(StatusCodes.BAD_REQUEST).json(err)
+    }
+    
 }
 const createProduct = async(req,res,next)=>{
-    req.body.user = req.user.userId
-    const product = await Product.create({...req.body})
-   res.status(StatusCodes.CREATED).json({product})
+//     req.body.user = req.user.userId
+//     const product = await Product.create({...req.body})
+//    res.status(StatusCodes.CREATED).json({product})
+    const newProduct = new Product(req.body)
+try{
+    const savedProduct = await newProduct.save()
+    //console.log(savedProduct)
+    res.status(201).json(savedProduct)
+}catch(err){ 
+    res.status(401).json(err)
+}
 
 }
 
 const getSingleProduct = async(req,res)=>{
-    const {user:{userId},params:{id}} = req
-    const product = await Product.findById({_id:id,user:userId})
-    .select({name:1,price:1,description:1})
+    // const {user:{userId},params:{id}} = req
+    // const product = await Product.findById({_id:id,user:userId})
+    // .select({name:1,price:1,description:1})
     
-    if(!product){
-        throw new CustomApiError('No product with id')
-    }
-    res.status(StatusCodes.OK).json({product})
+    // if(!product){
+    //     throw new CustomApiError('No product with id')
+    // }
+    // res.status(StatusCodes.OK).json({product})
+    try{
+        const product = await Product.findById(req.params.id)
+        res.status(201).json(product)
+        }catch(err){
+            res.status(500).json(err)
+        }
 }
 
 const updateSingleProduct = async(req,res)=>{
-    const {user:{userId},params:{id}} = req
-    const updateProduct = await Product.findOneAndUpdate({_id:id,user:userId},req.body,{
-        new:true,runValidators:true
-    })
-    res.status(StatusCodes.ACCEPTED).json({updateProduct})
+    // const {user:{userId},params:{id}} = req
+    // const updateProduct = await Product.findOneAndUpdate({_id:id,user:userId},req.body,{
+    //     new:true,runValidators:true
+    // })
+    // res.status(StatusCodes.ACCEPTED).json({updateProduct})
+    try{
+        const updateProduct = await Product.findByIdAndUpdate({_id:req.params.id},req.body,{
+            new:true, runValidators:true
+        })
+        res.status(201).json(updateProduct)
+    }catch(err){
+        res.status(500).json(err)
+    }
 }
 const deleteSingleProduct = async(req,res)=>{
-    const {user:{userId},params:{id}} = req
-    const deleteProduct = await Product.findOneAndDelete({_id:id,createdBy:userId})
-    res.status(StatusCodes.GONE).json({msg:'Product has been deleted'})
-}
-
-const getProductReview = async(req,res)=>{
-    const {comment,rating} = req.body
-    const product = await Product.findById(req.params.id)
-    if(product){
-        const alreadyExist = product.reviews.find((r)=>{
-            r.user.toString() === req.user._id.toString()
-        })
-        if(alreadyExist){
-            res.status(StatusCodes.FORBIDDEN)
-            throw new Error('product already reviewed')
-        }
-        const review = {
-            name:req.user.name,
-            rating: Number(rating),
-            comment:comment,
-            user:req.user._id
-
-        }
-        product.reviews.push(review)
-        product.numReviews = product.reviews.length
-        product.rating = product.reviews.reduce((initVal,curItem)=>{
-            return curItem.rating + initVal
-        },0)/product.reviews.length
-        await product.save()
-        res.status(StatusCodes.ACCEPTED).json({msg:"Review added"})
-    }else{
-        res.status(StatusCodes.NOT_FOUND)
-        throw new Error('Product not found')
+    // const {user:{userId},params:{id}} = req
+    // const deleteProduct = await Product.findOneAndDelete({_id:id,createdBy:userId})
+    // res.status(StatusCodes.GONE).json({msg:'Product has been deleted'})
+    try{
+        await Product.findByIdAndDelete(req.params.id)
+        res.status(200).json("product has been deleted")
+    }catch(err){
+        res.status(500).json(err)
     }
-    console.log('result',product)
 }
+
 
 const countPages = async(req,res)=>{
     const pageSize = 3
@@ -147,7 +164,6 @@ module.exports = {
     getSingleProduct,
     updateSingleProduct,
     deleteSingleProduct,
-    getProductReview,
     countPages,
     uploadProductImage
 }

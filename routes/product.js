@@ -8,15 +8,17 @@ const {getAllProducts,
     getSingleProduct,
     updateSingleProduct,
     deleteSingleProduct,
-    getProductReview,
     countPages,
     uploadProductImage
 } = require('../controllers/products')
 const {authenticateUser} = require('../middleware/authentication')
+const {verifyTokenAndIsAdmin} = require('../middleware/isAdminAuth')
 
-router.route('/').get(authenticateUser,getAllProducts).post(authenticateUser,createProduct)
-router.route('/:id/review').get(authenticateUser,getProductReview)
+router.route('/').get(getAllProducts).post(verifyTokenAndIsAdmin,createProduct)
+//router.route('/:id/review').get(authenticateUser,getProductReview)
 router.route('/page').get(countPages)
 router.route('/uploadImage').post(authenticateUser,uploadProductImage)
-router.route('/:id').get(authenticateUser,getSingleProduct).patch(authenticateUser,updateSingleProduct).delete(authenticateUser,deleteSingleProduct)
+router.route('/:id').get(getSingleProduct).patch(verifyTokenAndIsAdmin,updateSingleProduct).delete(authenticateUser,deleteSingleProduct)
+
+
 module.exports = router
